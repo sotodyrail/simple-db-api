@@ -18,4 +18,6 @@ SIGNALS IN RMQ - http://localhost:15672/#/queues/%2F/MARK%20SIGNALS
 RUN
 -----------
 
-export FLASK_APP=~/project/simple-db-api/main.py & sudo bash run.sh
+export FLASK_APP=~/project/simple-db-api/main.py
+
+sudo kill -9 $(sudo lsof -t -i:5000) & flask run 
