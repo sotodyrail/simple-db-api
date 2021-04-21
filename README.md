@@ -13,3 +13,10 @@ HTTP REQUEST - postman
 SIGNALS IN RMQ - http://localhost:15672/#/queues/%2F/MARK%20SIGNALS 
 	login - guest 
 	password - guest 
+
+
+RUN
+-----------
+
+export FLASK_APP=~/project/simple-db-api/main.py
+sudo bash run.sh
