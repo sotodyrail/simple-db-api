@@ -1,5 +1,6 @@
 
-
+DROP SCHEMA medication CASCADE;
+CREATE SCHEMA medication;
 
 CREATE TABLE patient 
 ( 
@@ -28,7 +29,7 @@ CREATE TABLE ward
 	id SERIAL PRIMARY KEY,
 	ward_capacity SMALLINT CHECK (ward_capacity > 0),
 	branch_id INTEGER NOT NULL, 
-	FOREIGN KEY (branch_id) REFERENCES treatment_department(id) ON DELETE SET NULL
+	CONSTRAINT fk_branch_id FOREIGN KEY (branch_id) REFERENCES treatment_department(id) ON DELETE SET NULL
 );
 CREATE TABLE attached
 (
@@ -36,8 +37,8 @@ CREATE TABLE attached
 	patient_id INTEGER NOT NULL UNIQUE,
 	ward_id INTEGER NOT NULL,
 	place SMALLINT CHECK (place > 0),
-	FOREIGN KEY (ward_id) REFERENCES ward(id),
-	FOREIGN KEY (patient_id) REFERENCES patient(id) ON DELETE CASCADE
+	CONSTRAINT fk_ward_id FOREIGN KEY (ward_id) REFERENCES ward(id),
+	CONSTRAINT fk_patient_id FOREIGN KEY (patient_id) REFERENCES patient(id) ON DELETE CASCADE
 );
 
 CREATE TABLE drug 
@@ -50,8 +51,8 @@ CREATE TABLE prescribed_medication
 	id SERIAL PRIMARY KEY,
 	patient_id INTEGER NOT NULL,
 	drug_id INTEGER,
-	FOREIGN KEY (patient_id) REFERENCES patient(id) ON DELETE CASCADE,
-	FOREIGN KEY (drug_id) REFERENCES drug(id)
+	CONSTRAINT fk_patient_id FOREIGN KEY (patient_id) REFERENCES patient(id) ON DELETE CASCADE,
+	CONSTRAINT fk_drug_id FOREIGN KEY (drug_id) REFERENCES drug(id)
 );
 CREATE TABLE attending_physician
 (
@@ -62,7 +63,7 @@ CREATE TABLE attending_physician
 	start_medical_examination TIME, 
 	end_medical_examination TIME,
 	patient_id INTEGER NOT NULL, 
-	FOREIGN KEY (patient_id) REFERENCES patient(id)
+	CONSTRAINT fk_patient_id FOREIGN KEY (patient_id) REFERENCES patient(id)
 );
 CREATE TABLE duty_list 
 ( 
@@ -77,8 +78,8 @@ CREATE TABLE delivery_pills
 	patient_id INTEGER,
 	delivered BOOLEAN, 
 	time_delivery DATE, 
-	FOREIGN KEY (nurse_id) REFERENCES duty_list(id),
-	FOREIGN KEY (patient_id) REFERENCES patient(id)
+	CONSTRAINT fk_nurse_id FOREIGN KEY (nurse_id) REFERENCES duty_list(id),
+	CONSTRAINT fk_patient_id FOREIGN KEY (patient_id) REFERENCES patient(id)
 );
 CREATE TABLE diagnosis 
 (
@@ -88,13 +89,14 @@ CREATE TABLE diagnosis
 	date_of_diagnosis DATE,
 	dynamics VARCHAR(255),
 	patient_id INTEGER NOT NULL UNIQUE,
-	FOREIGN KEY (patient_id) REFERENCES patient(id) ON DELETE CASCADE
+	CONSTRAINT fk_patient_id FOREIGN KEY (patient_id) REFERENCES patient(id) ON DELETE CASCADE
 );
-CREATE TABLE mark 
+
+CREATE TABLE mark
 (
-	id INT PRIMARY KEY CHECK(id < 5), 
+	id SERIAL PRIMARY KEY,
 	identifier INTEGER NOT NULL UNIQUE,
 	switch BOOLEAN DEFAULT False,
 	patient_id INTEGER NOT NULL UNIQUE, 
-	FOREIGN KEY (patient_id) REFERENCES patient(id)
+	CONSTRAINT fk_patient_id FOREIGN KEY (patient_id) REFERENCES patient(id)
 );

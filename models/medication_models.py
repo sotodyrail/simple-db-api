@@ -1,141 +1,188 @@
 # coding: utf-8
 from safrs import SAFRSBase
-from sqlalchemy import BigInteger, Boolean, Column, Date, DateTime, ForeignKey, Integer, SmallInteger, String, Table, Time, text
 from sqlalchemy.orm import relationship
-import sys, inspect
-
+from sqlalchemy import Boolean, CheckConstraint, Column, Date, ForeignKey, Integer, SmallInteger, String, Time, text
 from flask import current_app as app
-from flask_sqlalchemy import SQLAlchemy as sqlalchemy
+import pika
+import json
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import event
 
-db = sqlalchemy(app)
+db = SQLAlchemy(app)
 db.init_app(app)
 
-class AttendingPhysician(SAFRSBase, db.Model):
-    __tablename__ = 'attending_physician'
+
+class Drug(SAFRSBase, db.Model):
+    __tablename__ = 'drug'
     __table_args__ = {'schema': 'medication'}
 
-    attending_physician_id = Column(Integer, primary_key=True)
-    d_name = Column(String(35))
-    d_patronymic = Column(String(35))
-    d_surname = Column(String(35))
-    start_medical_examination = Column(Time)
-    end_medical_examination = Column(Time)
-    fk_patient_id = Column(ForeignKey('medication.patient.patient_id', ondelete='RESTRICT', onupdate='RESTRICT'), nullable=False, unique=True)
-
-    fk_patient = relationship('Patient')
-
-
-class DeliveryPill(SAFRSBase, db.Model):
-    __tablename__ = 'delivery_pills'
-    __table_args__ = {'schema': 'medication'}
-
-    adelivery_pills_id = Column(Integer, primary_key=True)
-    ward = Column(Integer)
-    delivered = Column(Boolean)
-    time_delivery = Column(DateTime(True))
-    fk_nurse_id = Column(ForeignKey('medication.duty_list.nurse_id', ondelete='RESTRICT', onupdate='RESTRICT'), nullable=False, index=True)
-    fk_patient_id = Column(ForeignKey('medication.patient.patient_id', ondelete='RESTRICT', onupdate='RESTRICT'), nullable=False, index=True)
-
-    fk_nurse = relationship('DutyList')
-    fk_patient = relationship('Patient')
-
-
-class Diagnosis(SAFRSBase, db.Model):
-    __tablename__ = 'diagnosis'
-    __table_args__ = {'schema': 'medication'}
-
-    diagnosis_id = Column(Integer, primary_key=True)
-    provisional_diagnosis = Column(String(255))
-    refined_diagnosis = Column(String(255))
-    date_of_diagnosis = Column(Date)
-    dynamics = Column(String(255))
-    fk_patient_id = Column(ForeignKey('medication.patient.patient_id', ondelete='RESTRICT', onupdate='RESTRICT'), nullable=False, unique=True)
-
-    fk_patient = relationship('Patient')
+    id = Column(Integer, primary_key=True, server_default=text("nextval('\"medication\".drug_id_seq'::regclass)"))
+    drug_name = Column(String(255))
 
 
 class DutyList(SAFRSBase, db.Model):
     __tablename__ = 'duty_list'
     __table_args__ = {'schema': 'medication'}
 
-    nurse_id = Column(Integer, primary_key=True)
+    id = Column(SmallInteger, primary_key=True,
+                server_default=text("nextval('\"medication\".duty_list_id_seq'::regclass)"))
     nurse_name = Column(String(100))
     start_shift = Column(Time)
-
-
-class Mark(SAFRSBase, db.Model):
-    __tablename__ = 'mark'
-    __table_args__ = {'schema': 'medication'}
-
-    cell_id = Column(BigInteger, primary_key=True)
-    identifier = Column(String(255), nullable=False, unique=True)
-    switch = Column(Boolean)
-    fk_patient_id = Column(ForeignKey('medication.patient.patient_id', ondelete='RESTRICT', onupdate='RESTRICT'), unique=True)
-
-    fk_patient = relationship('Patient')
 
 
 class Patient(SAFRSBase, db.Model):
     __tablename__ = 'patient'
     __table_args__ = {'schema': 'medication'}
 
-    patient_id = Column(BigInteger, primary_key=True)
+    id = Column(Integer, primary_key=True, server_default=text("nextval('\"medication\".patient_id_seq'::regclass)"))
     p_name = Column(String(35))
     p_patronymic = Column(String(35))
     p_surname = Column(String(35))
     birth_date = Column(Date)
-    medical_policy = Column(String(16))
-    contact_phone = Column(String(11))
+    medical_policy = Column(String(17))
+    contact_phone = Column(String(12))
     type_hospitalization = Column(String(25))
     date_hospitalization = Column(Date)
     discharged = Column(Boolean)
-
-
-class PrescribedMedication(SAFRSBase, db.Model):
-    __tablename__ = 'prescribed_medication'
-    __table_args__ = {'schema': 'medication'}
-
-    enumerator = Column(BigInteger, primary_key=True)
-    drug_name = Column(String(255))
-    fk_patient_id = Column(ForeignKey('medication.patient.patient_id', ondelete='RESTRICT', onupdate='RESTRICT'), index=True)
-
-    fk_patient = relationship('Patient')
 
 
 class TreatmentDepartment(SAFRSBase, db.Model):
     __tablename__ = 'treatment_department'
     __table_args__ = {'schema': 'medication'}
 
-    branch_id = Column(Integer, primary_key=True)
-    floor = Column(SmallInteger)
+    id = Column(Integer, primary_key=True,
+                server_default=text("nextval('\"medication\".treatment_department_id_seq'::regclass)"))
+    storey = Column(Boolean)
     branch_name = Column(String(35))
     department_head = Column(String(100))
     head_nurse = Column(String(100))
     station_phone = Column(String(11))
 
 
-class User(SAFRSBase, db.Model):
-    __tablename__ = 'users'
+class AttendingPhysician(SAFRSBase, db.Model):
+    __tablename__ = 'attending_physician'
     __table_args__ = {'schema': 'medication'}
 
-    id = Column(BigInteger, primary_key=True)
-    name = Column(String(255), nullable=False)
-    email = Column(String(255), nullable=False)
-    password = Column(String(255), nullable=False)
-    role = Column(BigInteger, nullable=False)
+    id = Column(Integer, primary_key=True,
+                server_default=text("nextval('\"medication\".attending_physician_id_seq'::regclass)"))
+    d_name = Column(String(35))
+    d_patronymic = Column(String(35))
+    d_surname = Column(String(35))
+    start_medical_examination = Column(Time)
+    end_medical_examination = Column(Time)
+    patient_id = Column(ForeignKey('medication.patient.id'), nullable=False)
+
+    patient = relationship('Patient')
+
+
+class DeliveryPill(SAFRSBase, db.Model):
+    __tablename__ = 'delivery_pills'
+    __table_args__ = {'schema': 'medication'}
+
+    id = Column(Integer, primary_key=True,
+                server_default=text("nextval('\"medication\".delivery_pills_id_seq'::regclass)"))
+    nurse_id = Column(ForeignKey('medication.duty_list.id'))
+    patient_id = Column(ForeignKey('medication.patient.id'))
+    delivered = Column(Boolean)
+    time_delivery = Column(Date)
+
+    nurse = relationship('DutyList')
+    patient = relationship('Patient')
+
+
+class Diagnosis(SAFRSBase, db.Model):
+    __tablename__ = 'diagnosis'
+    __table_args__ = {'schema': 'medication'}
+
+    id = Column(Integer, primary_key=True, server_default=text("nextval('\"medication\".diagnosis_id_seq'::regclass)"))
+    provisional_diagnosis = Column(String(255))
+    refined_diagnosis = Column(String(255))
+    date_of_diagnosis = Column(Date)
+    dynamics = Column(String(255))
+    patient_id = Column(ForeignKey('medication.patient.id', ondelete='CASCADE'), nullable=False, unique=True)
+
+    patient = relationship('Patient', uselist=False)
+
+
+class Mark(SAFRSBase, db.Model):
+    __tablename__ = 'mark'
+    __table_args__ = (
+        {'schema': 'medication'}
+    )
+
+    id = Column(Integer, primary_key=True, server_default=text("nextval('\"medication\".mark_id_seq'::regclass)"))
+    identifier = Column(Integer, nullable=False, unique=True)
+    switch = Column(Boolean, server_default=text("false"))
+    patient_id = Column(ForeignKey('medication.patient.id'), nullable=False, unique=True)
+
+    patient = relationship('Patient', uselist=False)
+
+
+class PrescribedMedication(SAFRSBase, db.Model):
+    __tablename__ = 'prescribed_medication'
+    __table_args__ = {'schema': 'medication'}
+
+    id = Column(Integer, primary_key=True,
+                server_default=text("nextval('\"medication\".prescribed_medication_id_seq'::regclass)"))
+    patient_id = Column(ForeignKey('medication.patient.id', ondelete='CASCADE'), nullable=False)
+    drug_id = Column(ForeignKey('medication.drug.id'))
+
+    drug = relationship('Drug')
+    patient = relationship('Patient')
 
 
 class Ward(SAFRSBase, db.Model):
     __tablename__ = 'ward'
-    __table_args__ = {'schema': 'medication'}
+    __table_args__ = (
+        CheckConstraint('ward_capacity > 0'),
+        {'schema': 'medication'}
+    )
 
-    ward_id = Column(Integer, primary_key=True)
-    ward = Column(Integer)
+    id = Column(Integer, primary_key=True, server_default=text("nextval('\"medication\".ward_id_seq'::regclass)"))
     ward_capacity = Column(SmallInteger)
-    position = Column(SmallInteger)
-    fk_patient_id = Column(ForeignKey('medication.patient.patient_id', ondelete='RESTRICT', onupdate='RESTRICT'), nullable=False, unique=True)
-    fk_branch_id = Column(ForeignKey('medication.treatment_department.branch_id', ondelete='RESTRICT', onupdate='RESTRICT'), nullable=False, index=True)
+    branch_id = Column(ForeignKey('medication.treatment_department.id', ondelete='SET NULL'), nullable=False)
 
-    fk_branch = relationship('TreatmentDepartment')
-    fk_patient = relationship('Patient')
+    branch = relationship('TreatmentDepartment')
 
+
+class Attached(SAFRSBase, db.Model):
+    __tablename__ = 'attached'
+    __table_args__ = (
+        CheckConstraint('place > 0'),
+        {'schema': 'medication'}
+    )
+
+    id = Column(Integer, primary_key=True, server_default=text("nextval('\"medication\".attached_id_seq'::regclass)"))
+    patient_id = Column(ForeignKey('medication.patient.id', ondelete='CASCADE'), nullable=False, unique=True)
+    ward_id = Column(ForeignKey('medication.ward.id'), nullable=False)
+    place = Column(SmallInteger)
+
+    patient = relationship('Patient', uselist=False)
+    ward = relationship('Ward')
+
+
+@event.listens_for(Mark, "before_insert", propagate=True)
+@event.listens_for(Mark, "before_update", propagate=True)
+def mark_commit(*args, **kwargs):
+    print("SIGNAL SEND TO http://localhost:15672/#/queues")
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters(host='localhost'))
+    channel = connection.channel()
+    channel.exchange_declare(exchange='logs', exchange_type='fanout')
+    result = channel.queue_declare(queue='MARK SIGNALS')
+    queue_name = result.method.queue
+    channel.queue_bind(exchange='logs', queue=queue_name)
+    prop = pika.BasicProperties(
+        content_type='application/json',
+        content_encoding='utf-8',
+        headers={'key': 'value'},
+        delivery_mode=1,
+    )
+    model = {c.name: getattr(args[2], c.name) for c in args[2].__table__.columns}
+    channel.basic_publish(
+        exchange='logs',
+        routing_key='MARK SIGNALS',
+        properties=prop,
+        body=json.dumps(model)
+    )
+    connection.close()
