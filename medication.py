@@ -12,6 +12,7 @@ with app.app_context():
     from models.medication_models import Drug, DutyList, Patient, TreatmentDepartment, AttendingPhysician, DeliveryPill, Diagnosis, Mark, PrescribedMedication, Ward, Attached, db
     from safrs import SAFRSAPI
 
+    db.create_all()
     api = SAFRSAPI(app, host='localhost', port=5000, prefix="")
     admin = Admin(app, url="/admin", template_mode='bootstrap3')
     for cls in (Drug, DutyList, Patient, TreatmentDepartment, AttendingPhysician, DeliveryPill, Diagnosis, Mark, PrescribedMedication, Ward, Attached):
