@@ -34,7 +34,7 @@ class Patient(SAFRSBase, db.Model):
     __tablename__ = 'patient'
     __table_args__ = {'schema': 'medication'}
 
-    id = Column(Integer, primary_key=True, server_default=text("nextval('\"medication\".patient_id_seq'::regclass)"))
+    id = Column(Integer, primary_key=True)
     p_name = Column(String(35))
     p_patronymic = Column(String(35))
     p_surname = Column(String(35))
@@ -50,8 +50,7 @@ class TreatmentDepartment(SAFRSBase, db.Model):
     __tablename__ = 'treatment_department'
     __table_args__ = {'schema': 'medication'}
 
-    id = Column(Integer, primary_key=True,
-                server_default=text("nextval('\"medication\".treatment_department_id_seq'::regclass)"))
+    id = Column(Integer, primary_key=True)
     storey = Column(Boolean)
     branch_name = Column(String(35))
     department_head = Column(String(100))
@@ -63,8 +62,7 @@ class AttendingPhysician(SAFRSBase, db.Model):
     __tablename__ = 'attending_physician'
     __table_args__ = {'schema': 'medication'}
 
-    id = Column(Integer, primary_key=True,
-                server_default=text("nextval('\"medication\".attending_physician_id_seq'::regclass)"))
+    id = Column(Integer, primary_key=True)
     d_name = Column(String(35))
     d_patronymic = Column(String(35))
     d_surname = Column(String(35))
@@ -79,8 +77,7 @@ class DeliveryPill(SAFRSBase, db.Model):
     __tablename__ = 'delivery_pills'
     __table_args__ = {'schema': 'medication'}
 
-    id = Column(Integer, primary_key=True,
-                server_default=text("nextval('\"medication\".delivery_pills_id_seq'::regclass)"))
+    id = Column(Integer, primary_key=True)
     nurse_id = Column(ForeignKey('medication.duty_list.id'))
     patient_id = Column(ForeignKey('medication.patient.id'))
     delivered = Column(Boolean)
@@ -94,7 +91,7 @@ class Diagnosis(SAFRSBase, db.Model):
     __tablename__ = 'diagnosis'
     __table_args__ = {'schema': 'medication'}
 
-    id = Column(Integer, primary_key=True, server_default=text("nextval('\"medication\".diagnosis_id_seq'::regclass)"))
+    id = Column(Integer, primary_key=True)
     provisional_diagnosis = Column(String(255))
     refined_diagnosis = Column(String(255))
     date_of_diagnosis = Column(Date)
@@ -110,11 +107,10 @@ class Mark(SAFRSBase, db.Model):
         {'schema': 'medication'}
     )
 
-    id = Column(Integer, primary_key=True, server_default=text("nextval('\"medication\".mark_id_seq'::regclass)"))
+    id = Column(Integer, primary_key=True)
     identifier = Column(Integer, nullable=False, unique=True)
     switch = Column(Boolean, server_default=text("false"))
     patient_id = Column(ForeignKey('medication.patient.id'), nullable=False, unique=True)
-
     patient = relationship('Patient', uselist=False)
 
 
@@ -122,8 +118,7 @@ class PrescribedMedication(SAFRSBase, db.Model):
     __tablename__ = 'prescribed_medication'
     __table_args__ = {'schema': 'medication'}
 
-    id = Column(Integer, primary_key=True,
-                server_default=text("nextval('\"medication\".prescribed_medication_id_seq'::regclass)"))
+    id = Column(Integer, primary_key=True)
     patient_id = Column(ForeignKey('medication.patient.id', ondelete='CASCADE'), nullable=False)
     drug_id = Column(ForeignKey('medication.drug.id'))
 
@@ -138,7 +133,7 @@ class Ward(SAFRSBase, db.Model):
         {'schema': 'medication'}
     )
 
-    id = Column(Integer, primary_key=True, server_default=text("nextval('\"medication\".ward_id_seq'::regclass)"))
+    id = Column(Integer, primary_key=True)
     ward_capacity = Column(SmallInteger)
     branch_id = Column(ForeignKey('medication.treatment_department.id', ondelete='SET NULL'), nullable=False)
 
@@ -152,7 +147,7 @@ class Attached(SAFRSBase, db.Model):
         {'schema': 'medication'}
     )
 
-    id = Column(Integer, primary_key=True, server_default=text("nextval('\"medication\".attached_id_seq'::regclass)"))
+    id = Column(Integer, primary_key=True)
     patient_id = Column(ForeignKey('medication.patient.id', ondelete='CASCADE'), nullable=False, unique=True)
     ward_id = Column(ForeignKey('medication.ward.id'), nullable=False)
     place = Column(SmallInteger)
