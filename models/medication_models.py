@@ -16,7 +16,7 @@ class Drug(SAFRSBase, db.Model):
     __tablename__ = 'drug'
     __table_args__ = {'schema': 'medication'}
 
-    id = Column(Integer, primary_key=True, server_default=text("nextval('\"medication\".drug_id_seq'::regclass)"))
+    id = Column(Integer, primary_key=True)
     drug_name = Column(String(255))
 
 
@@ -24,8 +24,7 @@ class DutyList(SAFRSBase, db.Model):
     __tablename__ = 'duty_list'
     __table_args__ = {'schema': 'medication'}
 
-    id = Column(SmallInteger, primary_key=True,
-                server_default=text("nextval('\"medication\".duty_list_id_seq'::regclass)"))
+    id = Column(SmallInteger, primary_key=True)
     nurse_name = Column(String(100))
     start_shift = Column(Time)
 
