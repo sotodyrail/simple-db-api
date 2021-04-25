@@ -18,4 +18,4 @@ SIGNALS IN RMQ - http://localhost:15672/#/queues/%2F/MARK%20SIGNALS
 RUN
 -----------
 
-sudo kill -9 $(sudo lsof -t -i:5000) & flask run --host=0.0.0.0 --port=8080
+sudo kill -9 $(sudo lsof -t -i:8080) & flask run --host=0.0.0.0 --port=8080
