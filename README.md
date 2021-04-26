@@ -21,3 +21,6 @@ RUN
 sudo kill -9 $(sudo lsof -t -i:8080) & flask run --host=0.0.0.0 --port=8080
 
 sudo -u postgres psql -U postgres -d medication -a -f initial.sql 
+
+python3 get.py 
+python3 patch.py 
