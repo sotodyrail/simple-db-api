@@ -1,7 +1,8 @@
 # coding: utf-8
 from safrs import SAFRSBase
 from sqlalchemy.orm import relationship
-from sqlalchemy import Boolean, CheckConstraint, Column, Date, ForeignKey, Integer, SmallInteger, String, Time, text
+from sqlalchemy import Boolean, CheckConstraint, Column, Date, ForeignKey, Integer, SmallInteger, String, Time, text, LargeBinary
+from sqlalchemy.dialects.postgresql import BYTEA
 from flask import current_app as app
 import pika
 import json
@@ -50,7 +51,7 @@ class TreatmentDepartment(SAFRSBase, db.Model):
     __table_args__ = {'schema': 'medication'}
 
     id = Column(Integer, primary_key=True)
-    storey = Column(Boolean)
+    storey = Column(Integer)
     branch_name = Column(String(35))
     department_head = Column(String(100))
     head_nurse = Column(String(100))
@@ -107,9 +108,9 @@ class Mark(SAFRSBase, db.Model):
     )
 
     id = Column(Integer, primary_key=True)
-    identifier = Column(Integer, nullable=False, unique=True)
+    identifier = Column(String(255), nullable=True, unique=False)
     switch = Column(Boolean, server_default=text("false"))
-    patient_id = Column(ForeignKey('medication.patient.id'), nullable=False, unique=True)
+    patient_id = Column(ForeignKey('medication.patient.id'), nullable=True, unique=True)
     patient = relationship('Patient', uselist=False)
 
 
