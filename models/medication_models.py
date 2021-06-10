@@ -109,6 +109,7 @@ class Mark(SAFRSBase, db.Model):
 
     id = Column(Integer, primary_key=True)
     identifier = Column(String(255), nullable=True, unique=False)
+    cell = Column(String(255), nullable=True, unique=False)
     switch = Column(Boolean, server_default=text("false"))
     patient_id = Column(ForeignKey('medication.patient.id'), nullable=True, unique=True)
     patient = relationship('Patient', uselist=False)
